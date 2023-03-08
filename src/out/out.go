@@ -19,8 +19,8 @@ func validate(request *structs.PutInput) error {
 		return fmt.Errorf("bot token is a required parameter")
 	}
 
-	if request.Source.Channel == "" {
-		return fmt.Errorf("channel is a required parameter")
+	if request.Source.Channel == "" && request.Params.Channel == "" {
+		return fmt.Errorf("channel is a required parameter in either source or params")
 	}
 
 	if request.Params.Blocks == "" && request.Params.BlocksFile == "" && request.Params.Text == "" {
@@ -72,6 +72,10 @@ func configure(request *structs.PutInput) (structs.Configuration, error) {
 		Channel:  request.Source.Channel,
 		BotToken: request.Source.BotToken,
 		Debug:    request.Source.Debug,
+	}
+
+	if request.Params.Channel != "" {
+		cfg.Channel = request.Params.Channel
 	}
 
 	// Default max retries to 1 if not set
