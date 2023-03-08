@@ -6,7 +6,7 @@ Resource for sending and updating in Slack from Concourse. There's a few other r
 
 ### Source
 
-*channel* - **required** - the channel id to send the message to
+*channel* - **required** - the channel id to send the message to - either this or params.channel must be provided
 
 *bot_token* - **required** - the OAUTH token for the Slack bot to use
 
@@ -23,6 +23,8 @@ Resource for sending and updating in Slack from Concourse. There's a few other r
 *thread_ts* - **optional** - the timestamp of a previous message to start a thread under
 
 *text* - **optional** - text to send, if provided with blocks then this will be used as fallback text (for example, in notifications where blocks can't be rendered)
+
+*channel* - **optional** - the channel id to send the message to - will override source.channel if provided
 
 ### A note on channels
 
@@ -48,6 +50,10 @@ For example,
       }
     ]
 ```
+
+### No Get
+
+Since v7.9.0, Concourse has supported an option called `no_get` in put steps. This skips the implicit get step right after doing a put. You can use `no_get` with this resource as long as you don't need the message timestamp later on.
 
 ## An example
 
@@ -135,5 +141,5 @@ resource_types:
     type: registry-image
     source:
       repository: ca5ey32/concourse-slack-resource
-      tag: 0.0.7
+      tag: 0.1.0
 ```

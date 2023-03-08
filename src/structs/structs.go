@@ -14,6 +14,7 @@ type Params struct {
 	Timestamp  string `json:"timestamp,omitempty"`
 	ThreadTS   string `json:"thread_ts,omitempty"`
 	Text       string `json:"text,omitempty"`
+	Channel    string `json:"channel,omitempty"`
 }
 
 type PutInput struct {
