@@ -141,5 +141,5 @@ resource_types:
     type: registry-image
     source:
       repository: ca5ey32/concourse-slack-resource
-      tag: 0.1.0
+      tag: 0.1.1
 ```
