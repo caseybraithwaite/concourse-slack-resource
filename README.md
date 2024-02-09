@@ -12,6 +12,8 @@ Resource for sending and updating in Slack from Concourse. There's a few other r
 
 *debug* - **optional** - include verbose status messages - do not use in production, this will leak credentials.
 
+*max_retries* - **optional** - the number of retries to attempt when a message times out - when left blank, this defaults to no retries
+
 ### Params
 
 *blocks* - **required** - the blocks to send to slack - see the example below
