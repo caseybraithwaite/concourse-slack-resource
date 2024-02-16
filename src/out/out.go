@@ -131,6 +131,9 @@ func sendMessage(api *slack.Client, channel string, maxRetries int, options []sl
 					log.Printf("hit rate limit - retrying after %d\n", rateLimitedError.RetryAfter)
 					time.Sleep(rateLimitedError.RetryAfter)
 				}
+			} else if strings.Contains(strings.ToLower(err.Error()), "internal server error") {
+				log.Println("internal server error - retrying after 3s")
+				time.Sleep(time.Second * 3)
 			} else {
 				return "", err
 			}
@@ -156,6 +159,9 @@ func updateMessage(api *slack.Client, channel string, timestamp string, maxRetri
 					log.Printf("hit rate limit - retrying after %d\n", rateLimitedError.RetryAfter)
 					time.Sleep(rateLimitedError.RetryAfter)
 				}
+			} else if strings.Contains(strings.ToLower(err.Error()), "internal server error") {
+				log.Println("internal server error - retrying after 3s")
+				time.Sleep(time.Second * 3)
 			} else {
 				return "", err
 			}
