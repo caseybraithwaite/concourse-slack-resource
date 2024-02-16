@@ -69,20 +69,14 @@ func interpolate(text string) string {
 
 func configure(request *structs.PutInput) (structs.Configuration, error) {
 	cfg := structs.Configuration{
-		Channel:  request.Source.Channel,
-		BotToken: request.Source.BotToken,
-		Debug:    request.Source.Debug,
+		Channel:    request.Source.Channel,
+		BotToken:   request.Source.BotToken,
+		Debug:      request.Source.Debug,
+		MaxRetries: request.Source.MaxRetries,
 	}
 
 	if request.Params.Channel != "" {
 		cfg.Channel = request.Params.Channel
-	}
-
-	// Default max retries to 1 if not set
-	if request.Source.MaxRetries == 0 {
-		cfg.MaxRetries = 1
-	} else {
-		cfg.MaxRetries = request.Source.MaxRetries
 	}
 
 	stringBlocks := ""
@@ -117,7 +111,7 @@ func configure(request *structs.PutInput) (structs.Configuration, error) {
 }
 
 func sendMessage(api *slack.Client, channel string, maxRetries int, options []slack.MsgOption) (string, error) {
-	for i := 0; i < maxRetries; i++ {
+	for i := 0; i <= maxRetries; i++ {
 		_, timestamp, err := api.PostMessage(
 			channel,
 			options...,
@@ -125,22 +119,21 @@ func sendMessage(api *slack.Client, channel string, maxRetries int, options []sl
 
 		if err == nil {
 			return timestamp, nil
-		} else {
+		} else if maxRetries == 0 {
+			return "", err
+		} else if i != maxRetries {
 			if rateLimitedError, ok := err.(*slack.RateLimitedError); ok {
 				if rateLimitedError.Retryable() {
 					log.Printf("hit rate limit - retrying after %d\n", rateLimitedError.RetryAfter)
 					time.Sleep(rateLimitedError.RetryAfter)
 				}
-			} else if strings.Contains(strings.ToLower(err.Error()), "internal server error") {
-				log.Println("internal server error - retrying after 3s")
-				time.Sleep(time.Second * 3)
 			} else {
-				return "", err
+				log.Printf("error whilst sending message to slack: %s - retrying after 3s\n", err)
+				time.Sleep(time.Second * 3)
 			}
 		}
 	}
-
-	return "", fmt.Errorf("couldn't send message - hit max retries")
+	return "", fmt.Errorf("max retries hit")
 }
 
 func updateMessage(api *slack.Client, channel string, timestamp string, maxRetries int, options []slack.MsgOption) (string, error) {
@@ -153,22 +146,21 @@ func updateMessage(api *slack.Client, channel string, timestamp string, maxRetri
 
 		if err == nil {
 			return timestamp, nil
-		} else {
+		} else if maxRetries == 0 {
+			return "", err
+		} else if i != maxRetries {
 			if rateLimitedError, ok := err.(*slack.RateLimitedError); ok {
 				if rateLimitedError.Retryable() {
 					log.Printf("hit rate limit - retrying after %d\n", rateLimitedError.RetryAfter)
 					time.Sleep(rateLimitedError.RetryAfter)
 				}
-			} else if strings.Contains(strings.ToLower(err.Error()), "internal server error") {
-				log.Println("internal server error - retrying after 3s")
-				time.Sleep(time.Second * 3)
 			} else {
-				return "", err
+				log.Printf("error whilst sending message to slack: %s - retrying after 3s\n", err)
+				time.Sleep(time.Second * 3)
 			}
 		}
 	}
-
-	return "", fmt.Errorf("couldn't update message - hit max retries")
+	return "", fmt.Errorf("max retries hit")
 }
 
 func execute(cfg *structs.Configuration) (string, error) {
